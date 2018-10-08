@@ -11,162 +11,136 @@ void afficher(int *T,int n){
     int k;
     printf("[");
     for(k=0; k<n; k++)
-	{
 		printf(" %i ", T[k]);
-	}
     printf("]\n");
 }
 
 /*Fonction Appartient*/
 /*Détermine si x appartient au tableau T1*/
-void appartient_gr_04(int x, int *T1, int s1, int n1)
-{
-    int inf=0, sup=n1-1, pos=-1, m;
-    if((x>T1[sup]) || (x<T1[inf])) printf("x n'appartient pas a T1\n"); // pour tester si x est dans l'intervalle et donc pour ameliorer la complexité dans ce cas
+int appartient_gr_04(int x, int *T1, int s1, int n1) {
+    int inf=0, sup=n1-1, m;
+    if((x>T1[sup]) || (x<T1[inf])) return 0; // pour tester si x est dans l'intervalle et donc pour ameliorer la complexité dans ce cas
     else {
-        while((inf<=sup) && pos==-1)
-        {
+        while(inf<=sup) {
             m=(sup+inf)/2;
             if(x<T1[m])
                 sup=m-1;
             else if(x>T1[m])
                 inf=m+1;
-            else if(T1[m] == x)
-            {
-                pos=m; // pour sortir de la bucle
-                printf("x = %d appartient a T1\n",x);
-            }
+            else
+                return 1;
         }
-        if(pos == -1) printf("x = %d n'appartient pas a T1\n",x);
+        return 0;
     }
 }
 
 /*Fonction Inclus*/
 /*Détermine si T1 est inclus dans T2 ou inversement*/
 
-void inclus_gr_04(int *T1, int s1, int n1, int *T2, int s2, int n2)
-{
-    if(n2> n1) {
-        int inf, sup, pos,tmpIndice=0, m, nbElementTrouve=0, x=0;
-        while ((x<n1) && (x==nbElementTrouve)) // on sort de la boucle si un élément n'est pas trouvé
-        {
-            inf=tmpIndice, sup=n2-1, pos=-1;
-            while((inf<=sup) && pos==-1)
-            {
-                m=(sup+inf)/2;
-                if(T1[x]<T2[m])
-                    sup=m-1;
-                else if(T1[x]>T2[m])
-                    inf=m+1;
-                else if(T2[m] == T1[x])
-                {
-                    pos=m;
-                    nbElementTrouve++;
-                    tmpIndice=m+1; // pour commencer la recherche d'element suivant à partir de la position suivante de l'elemnt trouvé pour optimiser la recherche
-                }
-            }
-            x++;
+int inclus_gr_04(int *T1, int s1, int n1, int *T2, int s2, int n2) {
+	int inf, sup, pos,tmpIndice=0, m, nbElementTrouve=0, x=0;
+	if(n2> n1) {
+    while ((x<n1) && (x==nbElementTrouve))  {// on sort de la boucle si un élément n'est pas trouvé
+      inf=tmpIndice, sup=n2-1, pos=-1;
+      while((inf<=sup) && pos==-1) {
+        m=(sup+inf)/2;
+        if(T1[x]<T2[m])
+          sup=m-1;
+        else if(T1[x]>T2[m])
+          inf=m+1;
+        else {
+          pos=m;
+          nbElementTrouve++;
+          tmpIndice=m+1; // pour commencer la recherche d'element suivant à partir de la position suivante de l'elemnt trouvé pour optimiser la recherche
         }
-        if(nbElementTrouve < n1) printf("T1 n'est pas inclus dans T2\n");
-        if(nbElementTrouve == n1) printf("T1 inclus dans T2\n");
+      }
+      x++;
     }
-    else if(n2<n1)
-    {
-        int inf, sup, pos, m,tmpIndice=0, nbElementTrouve=0, x=0;
-        while ((x<n2) && (x==nbElementTrouve)) // on sort de la boucle si un élément n'est pas trouvé
-        {
-            inf=tmpIndice, sup=n1-1, pos=-1;
-            while((inf<=sup) && pos==-1)
-            {
-                m=(sup+inf)/2;
-                if(T2[x]<T1[m])
-                    sup=m-1;
-                else if(T2[x]>T1[m])
-                    inf=m+1;
-                else if(T1[m] == T2[x])
-                {
-                    pos=m;
-                    nbElementTrouve++;
-                    tmpIndice=m+1; // pour commencer la recherche d'element suivant à partir de la position suivante de l'elemnt trouvé pour optimiser la recherche
-                }
-            }
-            x++;
+    if(nbElementTrouve < n1) return 0;
+    if(nbElementTrouve == n1) return 1;
+  }
+  else if(n2<n1) {
+    while ((x<n2) && (x==nbElementTrouve)) {// on sort de la boucle si un élément n'est pas trouvé
+      inf=tmpIndice, sup=n1-1, pos=-1;
+      while((inf<=sup) && pos==-1) {
+        m=(sup+inf)/2;
+        if(T2[x]<T1[m])
+          sup=m-1;
+        else if(T2[x]>T1[m])
+          inf=m+1;
+        else {
+          pos=m;
+          nbElementTrouve++;
+          tmpIndice=m+1; // pour commencer la recherche d'element suivant à partir de la position suivante de l'elemnt trouvé pour optimiser la recherche
         }
-        if(nbElementTrouve < n2) printf("T2 n'est pas inclus dans T1\n");
-        if(nbElementTrouve == n2) printf("T2 inclus dans T1\n");
+      }
+      x++;
     }
+    if(nbElementTrouve < n2) return 0;
+    if(nbElementTrouve == n2) return 1;
+  }
 
-    else if(n2==n1){
-        int x=0;
-        while (x<n1 && T1[x]==T2[x])  x++;
-        if( x < n1) printf("ni T1 est inclus dans T2, ni T2 est inclus dans T1\n");
-        if( x == n1) printf("T1 est inclus dans T2 et T2 est inclus dans T1\n");
-    }
+  else {
+    int x=0;
+    while (x<n1 && T1[x]==T2[x])  x++;
+    if( x < n1) return 0;
+    if( x == n1) return 1;
+  }
 }
+
 /*Fonction Inter*/
 /*Calcul dans un tableau T3 la fonction mathématique intersection entre T1 et T2*/
-void inter_gr_04(int *T1, int s1, int n1, int *T2, int s2, int n2, int *T3, int s3, int *n3)
-{
-    int k=0, i=0, tmpIndice=0;
-    if(n1 >= n2)
-    {
-        int inf=tmpIndice, sup=n1-1, pos=-1, m, x;
-        for (x=0; x <= n2-1; x++)
-        {
-            inf=0, sup=n1-1, pos=-1;
-            while((inf<=sup) && pos==-1)
-            {
-                m=(sup+inf)/2;
-                if(T2[x]<T1[m])
-                    sup=m-1;
-                else if(T2[x]>T1[m])
-                    inf=m+1;
-                else if(T1[m] == T2[x])
-                {
-                    pos=m;
-                    T3[i] = T2[x];
-                    i++;
-                    tmpIndice=m+1;
-                }
-            }
+void inter_gr_04(int *T1, int s1, int n1, int *T2, int s2, int n2, int *T3, int s3, int n3) {
+  int k=0, i=0, tmpIndice=0;
+  if(n1 >= n2) {
+    int inf=tmpIndice, sup=n1-1, pos=-1, m, x;
+    for (x=0; x <= n2-1; x++) {
+      inf=0, sup=n1-1, pos=-1;
+      while((inf<=sup) && pos==-1) {
+        m=(sup+inf)/2;
+        if(T2[x]<T1[m])
+          sup=m-1;
+        else if(T2[x]>T1[m])
+          inf=m+1;
+        else {
+          pos=m;
+          T3[i] = T2[x];
+          i++;
+          tmpIndice=m+1;
         }
+      }
     }
-    else {
-
-        int inf, sup, pos, m, x;
-        for (x=0; x <= n1-1; x++)
-        {
-            inf=tmpIndice, sup=n2-1, pos=-1;
-            while((inf<=sup) && pos==-1)
-            {
-                m=(sup+inf)/2;
-                if(T1[x]<T2[m])
-                    sup=m-1;
-                else if(T1[x]>T2[m])
-                    inf=m+1;
-                else if(T2[m] == T1[x])
-                {
-                    pos=m;
-                    T3[i] = T1[x];
-                    i++;
-                    tmpIndice=m+1;
-                }
-
-            }
+  }
+  else {
+    int inf, sup, pos, m, x;
+    for (x=0; x <= n1-1; x++) {
+      inf=tmpIndice, sup=n2-1, pos=-1;
+      while((inf<=sup) && pos==-1) {
+        m=(sup+inf)/2;
+        if(T1[x]<T2[m])
+          sup=m-1;
+        else if(T1[x]>T2[m])
+          inf=m+1;
+        else {
+          pos=m;
+          T3[i] = T1[x];
+          i++;
+          tmpIndice=m+1;
         }
+
+      }
     }
-    printf("l'intersertion de T1 et T2 est T3 = [");
-    for(k=0; k<i; k++)
-	{
+  }
+  printf("l'intersertion de T1 et T2 est T3 = [");
+  for(k=0; k<i; k++)
 		printf(" %i ", T3[k]);
-	}
-    printf("]\n");
-
+  printf("]\n");
 }
+
 
 /*Fonction Union*/
 /*Calcul dans un tableau T3 la fonction mathématique union entre T1 et T2*/
-void union_gr_04(int *T1, int s1, int n1, int *T2, int s2, int n2, int *T3, int s3, int *n3)
+void union_gr_04(int *T1, int s1, int n1, int *T2, int s2, int n2, int *T3, int s3, int n3)
 {
     int k=0, i=0,j=0;
     int x=0;
