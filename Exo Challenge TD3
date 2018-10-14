@@ -1,0 +1,169 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/*Implémentation de la structure*/
+typedef struct zMaillon {
+	int valeur;
+	struct zMaillon *suiv;
+} maillon, *liste;
+
+/*Création d'une liste vide*/
+liste creer_liste_vide(void)
+{
+	return NULL;
+}
+
+/*Détermine si la liste l est vide*/
+int est_liste_vide(liste l)
+{
+	return (l==NULL);
+}
+
+/*Ajouter un élément dans la liste l*/
+liste inserer(liste l, int val)
+{
+	liste nouveau=malloc(sizeof(maillon));
+	nouveau->valeur=val;
+	nouveau->suiv=l;
+	return nouveau; 
+}
+
+/*Récupère la tête de la liste l*/
+int tete(liste l)
+{
+	return l->valeur;
+}
+
+/*Récupère la queue de la liste l*/
+liste queue(liste l)
+{
+	return l->suiv;
+}
+
+/*Inversion de la liste*/
+liste inverse_aux(liste l, liste l2)
+{
+	if(est_liste_vide(l))
+		return l2;
+	return inverse_aux(queue(l), inserer(l2, tete(l)));
+}
+
+/*Créer la nouvelle liste inversée*/
+liste inverse(liste l)
+{
+	return inverse_aux(l, creer_liste_vide());
+}
+
+/*Affichage de la liste l*/
+void affichage(liste l)
+{
+	if(est_liste_vide(l))
+	{
+		printf("\n");
+		return;
+	}
+	printf("%d ", l->valeur);
+	affichage(l->suiv);
+}
+
+/*Trier la liste l avec une permutation des différents éléments de la chaîne*/
+void trier_liste(liste l)
+{
+	int permutation=0;
+	liste debutT=l;
+	liste finT=NULL;
+	do
+	{
+		permutation=0;
+		liste p=debutT;
+		liste fin=finT;
+		while(!est_liste_vide(p->suiv) && (fin==NULL || (p->valeur) != (fin->valeur)))
+		{
+			if((p->valeur)>(p->suiv->valeur))
+			{
+				int tmp=(p->valeur);
+				(p->valeur)=(p->suiv->valeur);
+				(p->suiv->valeur)=tmp;
+				if(!permutation)
+				{
+					permutation=1;
+					debutT=p;
+				}
+				finT=p;
+			}
+			p=(p->suiv);
+		}
+	} while(permutation);
+}
+
+/*Différents tests pour voir si c'est un palindrome*/
+int palindrome_aux(liste l, liste l2)
+{
+	int x=-1;
+	if(x==-1)
+	{
+		x=1;
+		liste queue_=l;
+		while(!est_liste_vide(queue(queue_)))
+		{
+			queue_=queue(queue_);
+			x++;
+		}
+		x/=2;
+	}
+	if(x==0 || (est_liste_vide(l) && est_liste_vide(l2)))
+	{
+		x=-1;
+		return 1; //Palindrome
+	}
+	if(est_liste_vide(queue(l)) != est_liste_vide(queue(l2)))
+	{
+		x=-1;
+		return 0; //Non palindrome
+	}
+	if(tete(l) != tete(l2))
+	{
+		x=-1;
+		return 0; //Non palindrome
+	}
+	x--;
+	return palindrome_aux(queue(l), queue(l2));
+}
+
+/*Retourne si l est un palindrome*/
+int palindrome(liste l)
+{
+	liste l2=inverse(l);
+	int pal=palindrome_aux(l, l2);
+	return pal;
+}
+
+/*-----*/
+int main(void)
+{
+	liste l=creer_liste_vide();
+	l=inserer(l, 5);
+	l=inserer(l, 7);
+	l=inserer(l, 3);
+	l=inserer(l, 4);
+	l=inserer(l, 8);
+	printf("\nListe avant le tri: ");
+	affichage(l);
+	trier_liste(l);
+	printf("\nListe apres le tri: ");
+	affichage(l);
+	/*Création de la liste l2*/
+	liste l2=creer_liste_vide();
+	l2=inverse(l);
+	printf("\nPalindrome?: %d", palindrome(l));
+	/*Test de palindrome avec une seconde chaîne*/
+	liste Test=creer_liste_vide();
+	Test=inserer(Test, 2);
+	Test=inserer(Test, 4);
+	Test=inserer(Test, 2);
+	printf("\nListe pour tester la fonction palindrome: ");
+	affichage(Test);
+	printf("\nPalindrome?: %d", palindrome(Test));
+
+	return 0;
+}
