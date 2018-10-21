@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define N 9
+
+/*Implémentation de la structure*/
+typedef struct zMaillon {
+	int valeur;
+	struct zMaillon *suiv;
+} maillon, *pile;
+
+/*Création de la pile vide*/
+pile create_empty_stack(void)
+{
+	return NULL;
+}
+
+/*Fonction si pile vide*/
+int is_empty_stack(pile p)
+{
+	return (p==NULL);
+}
+
+/*Ajout d'un élément dans la pile*/
+pile push(pile p, int val)
+{
+	pile nouveau=malloc(sizeof(maillon));
+	nouveau->valeur=val;
+	nouveau->suiv=p;
+	return nouveau;
+}
+
+/*Fonction pop de la pile*/
+pile pop(pile p)
+{
+	if(p != NULL)
+	return p->suiv;
+}
+
+/*Fonction top de la pile*/
+int top(pile p)
+{
+	return p->valeur;
+}
+
+/*Fonction d'affichage de la pile*/
+void affichagePile(pile p)
+{
+	if(is_empty_stack(p))
+	{
+		printf("\n");
+		return;
+	}
+		printf("%d ", p->valeur);
+		affichagePile(p->suiv);
+}
+
+/*Fonction pour la réalisation de l'addition*/
+pile additionner (pile p) 
+{
+	int res;
+	res = top(p) + top(pop(p));
+	p = pop(pop(p));
+	p = push(p,res);
+	return p;
+}
+
+/*Fonction pour la réalisation de la multiplication*/
+pile multiplier (pile p) 
+{
+	int res;
+	res = top(p) * top(pop(p));
+	p = pop(pop(p));
+	p = push(p,res);
+	return p;
+}
+
+/*Fonction pour la réalisation du calcul sans parenthèses*/
+int calcul_tableau (char T[], int n, pile p) 
+{
+	int i, char_to_int;
+	for (i = 0; i<n; i++) 
+	{
+		if (T[i] == '+') p = additionner(p);
+		else if (T[i] == '*') p = multiplier(p);
+		else 
+		{
+			char_to_int = T[i] - 48;
+			p = push(p,char_to_int);
+		}
+	}
+	return top(p);
+}
+
+/*Fonction main*/
+int main(void)
+{
+	int resul_1, resul_2;
+	char T1[N] = {'1','4','+','5','*','3','2','*','+'}; //Création du premier calcul
+	char T2[N] = {'1','4','5','+','*','3','2','*','+'}; //Création du second calcul
+
+	pile p = create_empty_stack();
+	resul_1 = calcul_tableau(T1,N,p); //Réalisation du calcul
+	resul_2 = calcul_tableau(T2,N,p); //Réalisation du calcul
+	printf("tableau T1 : %d\n", resul_1); //Affichage du calcul
+	printf("tableau T2 : %d\n", resul_2); //Affichage du calcul
+	return 0;
+}
