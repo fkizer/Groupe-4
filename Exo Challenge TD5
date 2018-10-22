@@ -1,0 +1,173 @@
+/*GROUPE 4*/
+
+/*----------/*
+/*arbres.c*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include "arbres.h"
+
+/*Fonction créer un arbre vide*/
+Arbre creer_arbre_vide (void) {
+    return NULL;
+}
+
+/*Fonction est arbre vide*/
+int est_arbre_vide (Arbre a) {
+    return a == NULL;
+}
+
+/*Fonction est feuille*/
+int est_feuille (Arbre a) {
+    return !est_arbre_vide(a) && est_arbre_vide(fils_g_arbre(a)) && est_arbre_vide(fils_d_arbre(a));
+}
+
+/*Fonction création d'un arbre*/
+Arbre creer_arbre (Elt e, Arbre g, Arbre d) {
+
+    Arbre nv = (Arbre)malloc(sizeof(Noeud));
+    nv->elt = e;
+    nv->fils_g = g;
+    nv->fils_d = d;
+
+    return nv;
+}
+
+/*Fonction création d'une feuille*/
+Arbre creer_feuille (Elt e) {
+    return creer_arbre(e, creer_arbre_vide(), creer_arbre_vide());
+}
+
+/*Fonction racine arbre*/
+Elt racine_arbre(Arbre a) {
+    assert(!est_arbre_vide(a));
+    return a->elt;
+}
+/**/
+Arbre fils_g_arbre(Arbre a) {
+    assert(!est_arbre_vide(a));
+    return a->fils_g;
+}
+/**/
+Arbre fils_d_arbre(Arbre a) {
+    assert(!est_arbre_vide(a));
+    return a->fils_d;
+}
+
+/*Fonction affichage de l'arbre récursif*/
+void print_arbre_rec (Arbre a) {
+
+    if(est_arbre_vide(a)) return;
+
+    printf (" %c ", racine_arbre(a)) ;
+    
+    if(!est_feuille(a)){
+        printf(" (");
+        print_arbre_rec (fils_g_arbre(a)) ;
+        print_arbre_rec (fils_d_arbre(a)) ;
+        printf(") ");
+    }
+}
+
+/*Fonction affichage de l'arbre*/
+void print_arbre (Arbre a) {
+    printf("Arbre : [");
+    print_arbre_rec(a);
+    printf("]\n");
+}
+
+/*Fonction libération mémoire*/
+void cleanup_arbre (Arbre a) {
+
+    if(est_arbre_vide(a)) return;
+    cleanup_arbre(fils_g_arbre(a));
+    cleanup_arbre(fils_d_arbre(a));
+    free(a);
+}
+
+/*----------*/
+/*arbres.h*/
+typedef char Elt;
+typedef struct znoeud {
+
+    Elt elt;
+    struct znoeud *fils_g;
+    struct znoeud *fils_d;
+} Noeud, *Arbre;
+
+Arbre creer_arbre_vide (void);
+
+int est_arbre_vide (Arbre a);
+
+int est_feuille (Arbre a);
+
+Arbre creer_arbre (Elt e, Arbre g, Arbre d);
+
+Arbre creer_feuille (Elt e);
+
+Elt racine_arbre(Arbre a);
+
+Arbre fils_g_arbre(Arbre a);
+
+Arbre fils_d_arbre(Arbre a);
+
+void print_arbre (Arbre a);
+
+void cleanup_arbre (Arbre a);
+
+/*----------*/
+/*main.c*/
+#include <stdio.h>
+#include <stdlib.h>
+#include "arbres.h"
+
+#define CHAINE_MAX 64
+
+/*Fonction pour sérialiser*/
+Elt *serialiser_rec(Arbre arbre, Elt *resultat) {
+    if(*(resultat+1) != '\0') return resultat;
+    if(est_arbre_vide(arbre)) {
+        *(resultat++) = '0';
+        return resultat;
+    }
+    *(resultat++) = '1';
+    *(resultat++) = racine_arbre(arbre);
+    resultat = serialiser_rec(fils_g_arbre(arbre), resultat) ;
+    resultat = serialiser_rec(fils_d_arbre(arbre), resultat) ;
+    return resultat;
+}
+
+Elt *serialiser(Arbre arbre, int eltMax) {
+
+    Elt *chaine = malloc(eltMax * sizeof(Elt));
+    serialiser_rec(arbre, chaine);
+    return chaine;
+}
+
+/*Fonction pour déserialiser*/
+Arbre deserialiser_rec(Elt chaine[], int *ptr) {
+    if(chaine[*ptr] == '0' || chaine[*ptr] == '\0' || chaine[*ptr] != '1'){
+        (*ptr)++;
+        return creer_arbre_vide();
+    }
+    Elt e = chaine[ (*ptr) + 1 ]; 
+    (*ptr) += 2; 
+    Arbre fg = deserialiser_rec(chaine, ptr);
+    Arbre fd = deserialiser_rec(chaine, ptr);
+    return creer_arbre(e, fg, fd);
+}
+
+Arbre deserialiser(Elt chaine[]) {
+    int ptr = 0;
+    return deserialiser_rec(chaine, &ptr);
+}
+
+int main (void) {
+    Elt chaine1[CHAINE_MAX] = "1a1b1c0001d1x001y00";
+    printf("Deserialisation de \'%s\'...\n", chaine1); //Affichage question i)
+    Arbre ar = deserialiser(chaine1);
+    print_arbre(ar);
+    Elt *chaine2 = serialiser(ar, CHAINE_MAX);
+    printf("Serialisation de l\'arbre : %s\n", chaine2); //Affichage question ii)
+    return 0;
+}
