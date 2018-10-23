@@ -125,7 +125,6 @@ void cleanup_arbre (Arbre a);
 
 /*Fonction pour sérialiser*/
 Elt *serialiser_rec(Arbre arbre, Elt *resultat) {
-    if(*(resultat+1) != '\0') return resultat;
     if(est_arbre_vide(arbre)) {
         *(resultat++) = '0';
         return resultat;
@@ -146,7 +145,7 @@ Elt *serialiser(Arbre arbre, int eltMax) {
 
 /*Fonction pour déserialiser*/
 Arbre deserialiser_rec(Elt chaine[], int *ptr) {
-    if(chaine[*ptr] == '0' || chaine[*ptr] == '\0' || chaine[*ptr] != '1'){
+    if(chaine[*ptr] != '1'){
         (*ptr)++;
         return creer_arbre_vide();
     }
