@@ -1,0 +1,282 @@
+/*-----------------------ALGEBRE.C--------------------------*/
+#include "algebre.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+mymatrix * creer (int n, int m)
+{
+  int i, j ;
+  mymatrix * tmp = malloc(sizeof(mymatrix)) ;
+  tmp->n = n ;
+  tmp->m = m ;
+  // allocation de la matrice
+  tmp->M = malloc(n*sizeof(float *)) ;
+  for (i=0; i<n; i++)
+    (tmp->M)[i] = malloc(m*sizeof(float)) ;
+  // initialisation à 0
+  for (i=0; i<n; i++)
+  {
+    for (j=0; j<m; j++)
+      (tmp->M)[i][j] = 0 ;
+  }
+  return tmp ;
+}
+
+
+mymatrix * concatener (mymatrix *A, mymatrix *B)
+{
+  mymatrix *C ;
+  int i, j, k ;
+  assert(A->n == B->n) ;
+  C = creer(A->n, A->m+B->m) ;
+  for (i=0; i < A->n; i++)
+  {
+    k = 0 ;
+    for (j=0; j < A->m;  j++,k++)
+      (C->M)[i][k] = (A->M)[i][j] ;
+    for (j=0; j < B->m;  j++,k++)
+      (C->M)[i][k] = (B->M)[i][j] ;
+  }
+  return C ;
+}
+
+void print_matrix(mymatrix *A)
+{
+  int i, j ;
+
+  for (i=0; i<A->n; i++)
+  {
+    for (j=0; j<A->m; j++)
+      printf("%f\t", (A->M)[i][j]) ;
+    printf("\n") ;
+  }
+}
+
+int gauss (mymatrix *C, int n, int k)
+{
+  int i = 0;
+  while (i < n)
+  {
+    //Cherche le pivot de Gauss
+    int pivot = i;
+    for (int rMax = i; rMax < n; rMax++)
+    {
+      //Si 0, on ne le prend pas comme pivot
+      if((C->M)[rMax][i] == 0 && rMax == pivot)
+      {
+        pivot++;
+        continue;
+      }
+      //Si on obtient le max, on prend ce pivot
+      if( (C->M)[rMax][i] > (C->M)[pivot][i] && (C->M)[rMax][i] != 0)
+        pivot = rMax;
+    }
+    //Pas de pivot
+    if(pivot>=n)
+    {
+      i++;
+      return 0;
+    }
+    int l=0, c=0;
+    l=0;
+    //Combinaisons linéaires sur les lignes
+    while(l<n)
+    {
+      if(l!=pivot) //Sauf sur le pivot
+      {
+        //Valeur de la combinaison
+        double val = -((C->M)[l][i]) / ((C->M)[pivot][i]);
+        for(c = 0; c < n + k; c++)
+        {
+          (C->M)[l][c] += val * (C->M)[pivot][c];
+        }
+      }
+      l++;
+    }
+    for(c=0; c<n+k; c++)
+    {
+      float tmp = (C->M)[i][c];
+      (C->M)[i][c] = (C->M)[pivot][c];
+      (C->M)[pivot][c] = tmp;
+    }
+    i++;
+  }
+  //Matrice inversible
+  i=0;
+  while(i<n && (C->M)[i][i]!=0)
+    i++;
+  return i>=n;
+}
+
+int remontee_gauss (mymatrix *C, int n, int k)
+{
+  int i=n-1;
+  while(i>=0)
+  {
+    int c=i;
+    double val=1/(C->M)[c][c]; //Obtenir 1 sur la case
+    while(c<n+k)
+    {
+      (C->M)[i][c] *= val;
+      c++;
+    }
+    //Combinaisons de la ligne pour obtenir des 0
+    int j=0;
+    while(j<i)
+    {
+      double val2 = -( (C->M)[j][c] ); //Valeur combinaison linéaire
+      //Sur toutes les colonnes
+      c=0;
+      while(c<n+k)
+      {
+        (C->M)[j][c] += val2 * (C->M)[i][c];
+        c++;
+      }
+      j++;
+    }
+    //Remonter les lignes
+    i--;
+  }
+  return 1;
+}
+
+/*-----------------------ALGEBRE.H--------------------------*/
+#ifndef __ALGEBRE_H
+#define __ALGEBRE_H
+
+struct zmatrix {
+  int n ; // nombre de lignes
+  int m ; // nombre de colonnes
+  float **M ; // la matrice nxm
+} ;
+
+typedef struct zmatrix mymatrix ;
+
+mymatrix * creer (int n, int m) ;
+mymatrix * concatener (mymatrix *A, mymatrix *B) ;
+void print_matrix(mymatrix *A) ;
+int gauss(mymatrix *C, int n, int k);
+int remontee_gauss(mymatrix *C, int n, int k);
+#endif
+
+/*-------------------------MAIN.C---------------------------*/
+#include <stdio.h>
+#include "algebre.h"
+
+int resoudre(mymatrix *Coef, mymatrix *Resu) {
+  mymatrix *C = concatener(Coef, Resu);
+  //Si la matrice n'est pas inversible
+  if(gauss(C, Coef->n, 1) == 0)
+    return 0;
+  remontee_gauss(C, Coef->n, 1);
+  //Enregistrement des résultats
+  for(int i = 0; i < Coef->n; i++) {
+    (Resu->M)[i][0] = (C->M)[i][Coef->n];
+  }
+
+  return 1;
+}
+
+int inverser(mymatrix *A)
+{
+  int n = A->n;
+  mymatrix *ID = creer(n, n);
+  for (int i=0; i<n; i++)
+    (ID->M)[i][i]=1;
+  mymatrix *C = concatener(A, ID);
+  //Cas où la matrice n'est pas inversible
+  if(gauss(C, n, n) == 0)
+    return 0;
+  //Cas lorsque la matrice est inversible
+  remontee_gauss(C, n, n);
+   for (int i = 0; i < n; i++)
+     for (int j = 0; j < n; j++)
+      (A->M)[i][j] = (C->M)[i][j + n];
+  return 1;
+}
+
+float determinant(mymatrix *A)
+{
+  //Si la matrice n'est pas inversible, on retourne 0
+  if(gauss(A, A->n, 0) == 0)
+    return 0;
+  //Sinon on retourne le produit des cases de la diagonale
+  float res=1;
+  for(int i=0; i<A->n; i++)
+    res *= (A->M)[i][i];
+  return res;
+}
+
+int main()
+{
+  int n, temp;
+  //Création de la matrice
+  printf("Saisir la taille de la matrice: ");
+  scanf("%d", &n);
+  mymatrix *A=creer(n,n);
+  for(int i=0; i<n; i++)
+  {
+    for(int j=0; j<n; j++)
+    {
+      printf("Saisir le %d-ième élément de la %d-ième ligne:", j+1, i+1);
+      scanf("%d", &temp);
+      (A->M)[i][j]=temp;
+    }
+  }
+  //Système linéaire
+  printf("\nREALISATION DU SYSTEME LINEAIRE\n");
+  printf("Saisir la seconde matrice pour la réalisation du système\n");
+  mymatrix *B=creer(n,1);
+  for(int i=0; i<n; i++)
+  {
+    printf("Saisir le %d-ième élément: ", i+1);
+    scanf("%d", &temp);
+    (B->M)[i][0]=temp;
+  }
+  int test=resoudre(A, B);
+  if(test==1)
+  {
+    printf("Système résolu:\n");
+    mymatrix *ID=creer(n,n);
+    for(int i=0; i<n; i++)
+      (ID->M)[i][i]=1;
+    mymatrix *C=concatener(ID, B);
+    print_matrix(C);
+  }
+  else
+    printf("Système non résolvable\n");
+
+  //Matrice inverse
+  printf("\nCALCUL DE LA MATRICE INVERSE\n");
+  printf("Matrice:\n");
+  print_matrix(A);
+  inverser(A);
+  printf("Matrice inverse:\n");
+  print_matrix(A);
+
+  //Déterminant
+  printf("\nCALCUL DU DETERMINANT DE LA MATRICE\n");
+  printf("Matrice:\n");
+  print_matrix(A);
+  printf("Le déterminant est: %f\n", determinant(A));
+  return 0 ;
+}
+
+/*-----------------------MAKEFILE---------------------------*/
+CC = gcc
+CCFLAGS = -Wall
+
+all: main
+
+algebre.o : algebre.h algebre.c
+	$(CC) $(CCFLAGS) -c algebre.c
+
+main.o : main.c
+	$(CC) $(CCFLAGS) -c main.c
+
+main : main.o algebre.o
+	$(CC) $(CCFLAGS) -o main main.o algebre.o
+
+clear :
+	rm *.o ; rm main
